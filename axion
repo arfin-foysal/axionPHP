@@ -1,0 +1,70 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Dotenv\Dotenv;
+use Core\Console\MigrateCommand;
+use Core\Console\MigrateRollbackCommand;
+use Core\Console\MigrateStatusCommand;
+use Core\Console\MigrateStatusDemoCommand;
+use Core\Console\MakeMigrationCommand;
+use Core\Console\StartCommand;
+use Core\Console\StartDevCommand;
+
+// Load environment variables
+$dotenv = new Dotenv();
+$dotenv->load(__DIR__ . '/.env');
+
+// Initialize database only for commands that need it
+$needsDatabase = !in_array($argv[1] ?? '', ['make:migration']);
+
+if ($needsDatabase) {
+    require_once __DIR__ . '/bootstrap/database.php';
+}
+
+// Create console application
+$application = new Application('AxionPHP CLI', '1.0.0');
+
+// Register commands based on what's needed
+$command = $argv[1] ?? '';
+
+switch ($command) {
+    case 'make:migration':
+        $application->add(new MakeMigrationCommand());
+        break;
+    case 'migrate':
+        $application->add(new MigrateCommand());
+        break;
+    case 'migrate:rollback':
+        $application->add(new MigrateRollbackCommand());
+        break;
+    case 'migrate:status':
+        $application->add(new MigrateStatusCommand());
+        break;
+    case 'migrate:status:demo':
+        $application->add(new MigrateStatusDemoCommand());
+        break;
+    case 'start':
+        $application->add(new StartCommand());
+        break;
+    case 'start:dev':
+        $application->add(new StartDevCommand());
+        break;
+    default:
+        // Add only non-database commands for help/list
+        $application->add(new MakeMigrationCommand());
+        $application->add(new MigrateStatusDemoCommand());
+        $application->add(new StartCommand());
+        $application->add(new StartDevCommand());
+
+        // Add a note about database commands
+        if (!$needsDatabase || in_array($command, ['help', 'list', ''])) {
+            // Don't add database commands to avoid connection errors
+        }
+        break;
+}
+
+// Run the application
+$application->run();
