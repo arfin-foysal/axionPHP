@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\FileUser;
+use App\Models\InMemoryUser;
 use Core\JwtHelper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Exception;
